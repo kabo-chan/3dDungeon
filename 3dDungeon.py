@@ -69,6 +69,7 @@ def draw_rightsidewall(x,z):
     draw_wall_sub(points,z)
 def handle_keys():
     global player_x, player_y, player_dir, moved, wire,num_walls
+    global player_x, player_y, player_dir, moved, wire,num_walls
     keys = pygame.key.get_pressed()
 
     if keys[pygame.K_SPACE]:
@@ -162,7 +163,7 @@ def draw_maze_around_player(player_x, player_y, maze):
     screen_center_x = screen.get_width() // 2 - cell_size // 2
     screen_center_y = screen.get_height() // 2 - cell_size // 2
 
-    # プレイヤーを中心に周囲の 5x5 の範囲の迷路を描画する
+    # プレイヤーを中心に周囲の迷路を描画する
     view = int(num_walls/2)
     for i in range(-view, view+1):
         for j in range(-view, view+1):
@@ -188,17 +189,17 @@ def draw_player_direction():
     # プレイヤーの向きを表示
     arrow_text = ""
     if player_dir == 0:
-        arrow_text = "↑"
+        arrow_text = "▲"
     elif player_dir == 1:
-        arrow_text = "→"
+        arrow_text = "▶"
     elif player_dir == 2:
-        arrow_text = "↓"
+        arrow_text = "▼"
     elif player_dir == 3:
-        arrow_text = "←"
-
-    font = pygame.font.SysFont('meiryo', 16)  # 日本語フォントと大きさ
+        arrow_text = "◀"
+    fontsize = 12
+    font = pygame.font.SysFont('meiryo', fontsize)  # 日本語フォントと大きさ
     text_surface = font.render(arrow_text, True, (255, 0, 0))  # 赤色の矢印
-    text_rect = text_surface.get_rect(center=(screen.get_width() // 2, screen.get_height() // 2))
+    text_rect = text_surface.get_rect(center=(screen.get_width() // 2 + 1, screen.get_height() // 2+1))
     screen.blit(text_surface, text_rect)
 
 ##### 変数などの初期設定
@@ -250,5 +251,7 @@ while True:
         
         pygame.display.flip()  # 画面の更新
         pygame.time.delay(200)  # スリープを挿入
+
+    moved = False  # 移動フラグをリセット        
 
     moved = False  # 移動フラグをリセット        
