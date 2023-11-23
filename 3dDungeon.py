@@ -74,7 +74,12 @@ def handle_keys():
 
     if keys[pygame.K_SPACE]:
         wire = not wire  # スペースキーで線と塗りつぶしを切り替え
+
+    if keys[pygame.K_SPACE]:
+        wire = not wire  # スペースキーで線と塗りつぶしを切り替え
         moved = True
+    if keys[pygame.K_q]:
+        num_walls = (num_walls % 8) + 1
     if keys[pygame.K_q]:
         num_walls = (num_walls % 8) + 1
         moved = True
