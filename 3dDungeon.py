@@ -4,6 +4,20 @@ import random
 N = 20  # 迷路のサイズ
 maze = [[15 for _ in range(N)] for _ in range(N)]  # 全ての壁がある状態で初期化
 cell_size = 20
+wire = True
+# 主人公の初期状態
+player_x, player_y = 0, 0  # 主人公の位置（迷路のスタート地点）
+player_dir = 0  # 主人公の向き（0: 北, 1: 東, 2: 南, 3: 西）
+
+wall_size = 800,0.618   #横の幅、縦の比率
+screen = pygame.display.set_mode((640, 480))
+
+# 壁の色と線の色
+wall_color = (160, 160, 160)
+bg_color = (0, 0, 0)
+
+# 奥行きの上限
+num_walls = 5
 def remove_wall(x, y, direction):
     """ 指定された壁を取り除く関数 """
     maze[y][x] &= ~direction
@@ -49,15 +63,6 @@ add_random_rooms(maze, 2, 5, 5)  # 2x2から5x5のサイズの部屋を2から5�
 
 # Pygameの初期化
 pygame.init()
-wall_size = 800,0.618
-screen = pygame.display.set_mode((640, 480))
-
-# 壁の色と線の色
-wall_color = (200, 200, 200)
-bg_color = (0, 0, 0)
-
-# 奥行きの上限
-num_walls = 5
 
 def calculate_wall_dimensions(x, z):
     # 壁の高さと幅を計算
@@ -75,8 +80,12 @@ def draw_wall_sub(points, z):
     blend_factor = min(z / num_walls, 1)  # 壁の色をbg_colorに近づけるための係数
     color = [int(wall_color[i] * (1 - blend_factor) + bg_color[i] * blend_factor) for i in range(3)]
 
-    pygame.draw.polygon(screen, bg_color, points, width = 0)
-    pygame.draw.polygon(screen, color, points, width=0)
+    if wire :
+        pygame.draw.polygon(screen, bg_color, points, width = 0)
+        pygame.draw.polygon(screen, color, points, width=1)
+    else:
+        pygame.draw.polygon(screen, bg_color, points, width = 0)
+        pygame.draw.polygon(screen, color, points, width=0)
 
 def draw_wall(x, z): #ｘは左右　ｚは奥行き
     #正面の壁を描く
@@ -126,40 +135,36 @@ def draw_rightsidewall(x,z):
     draw_wall_sub(points,z)
     
     
-# 主人公の初期状態
-player_x, player_y = 0, 0  # 主人公の位置（迷路のスタート地点）
-player_dir = 0  # 主人公の向き（0: 北, 1: 東, 2: 南, 3: 西）
-# 移動フラグの初期化
-moved = False
+
+
 def handle_keys():
-    global player_x, player_y, player_dir, moved
+    global player_x, player_y, player_dir, moved, wire,num_walls
     keys = pygame.key.get_pressed()
-    
-    if keys[pygame.K_LEFT]:
-        player_dir = (player_dir - 1) % 4  # 左に90度回転
+
+    if keys[pygame.K_SPACE]:
+        wire = not wire  # スペースキーで線と塗りつぶしを切り替え
         moved = True
-    elif keys[pygame.K_RIGHT]:
-        player_dir = (player_dir + 1) % 4  # 右に90度回転
+    if keys[pygame.K_q]:
+        num_walls = (num_walls % 8) + 1
         moved = True
-    elif keys[pygame.K_UP]:
-        # 前に進む際のロジックを更新
-        front_wall, _, _ = is_wall_present(maze, player_x, player_y, player_dir)
-        if not front_wall:
-            if player_dir == 0:  # 北
-                player_y = (player_y - 1) % N
-                moved = True
-            elif player_dir == 1:  # 東
-                player_x = (player_x + 1) % N
-                moved = True
-            elif player_dir == 2:  # 南
-                player_y = (player_y + 1) % N
-                moved = True
-            elif player_dir == 3:  # 西
-                player_x = (player_x - 1) % N
-                moved = True
-    elif keys[pygame.K_DOWN]:
-        player_dir = (player_dir + 2) % 4  # 180度回転
-        moved = True
+    direction_mapping = {
+        pygame.K_a: -1,  # 左に90度回転
+        pygame.K_d: 1,   # 右に90度回転
+        pygame.K_w: {0: (0, -1), 1: (1, 0), 2: (0, 1), 3: (-1, 0)},  # 前に進む
+        pygame.K_s: 2,   # 180度回転
+    }
+
+    for key, action in direction_mapping.items():
+        if keys[key]:
+            if isinstance(action, int):
+                player_dir = (player_dir + action) % 4
+            elif isinstance(action, dict):
+                dx, dy = action[player_dir]
+                front_wall, _, _ = is_wall_present(maze, player_x, player_y, player_dir)
+                if True : #not front_wall: #デバッグとして壁を通り抜けられる
+                    player_x = (player_x + dx) % N
+                    player_y = (player_y + dy) % N
+            moved = True
         
 def get_maze_coordinates(player_x, player_y, player_dir, i, j):
     if player_dir == 0:  # 北を向いている
@@ -272,8 +277,9 @@ def draw_maze_around_player(player_x, player_y, maze):
     screen_center_y = screen.get_height() // 2 - cell_size // 2
 
     # プレイヤーを中心に周囲の 5x5 の範囲の迷路を描画する
-    for i in range(-2, 3):
-        for j in range(-2, 3):
+    view = int(num_walls/2)
+    for i in range(-view, view+1):
+        for j in range(-view, view+1):
             x = player_x + j
             y = player_y + i
 
@@ -311,6 +317,7 @@ def draw_player_direction():
     screen.blit(text_surface, text_rect)
 
 # ゲームのメインループ
+moved = True
 while True:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
@@ -318,7 +325,6 @@ while True:
             exit()
 
 
-    moved = False  # 移動フラグをリセット
     handle_keys()  # キー操作の処理
     if moved:
         draw_player_view()  # プレイヤーの視点からの壁の描画
@@ -330,4 +336,5 @@ while True:
         
         pygame.display.flip()  # 画面の更新
         pygame.time.delay(200)  # スリープを挿入
-        
+
+    moved = False  # 移動フラグをリセット        
