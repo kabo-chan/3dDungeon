@@ -4,7 +4,7 @@ import random
 import generate_maze    #generate_maze, remove_wall, add_random_rooms
 import draw_3d
 
-def draw_text(game_settings ):
+def draw_text(game_settings ):  #画面したに情報表示
     screen = game_settings['screen']
     player_x = game_settings['player_x']
     player_y = game_settings['player_y']
@@ -21,7 +21,7 @@ def draw_text(game_settings ):
 
     # テキストを画面に描画
     screen.blit(text_surface, (10, screen.get_height()-50))
-def draw_maze_around_player(game_settings ):
+def draw_maze_around_player(game_settings ):    #画面中心に周囲の地図を表示
     screen = game_settings['screen']
     maze = game_settings['maze']
     player_x = game_settings['player_x']
@@ -55,7 +55,7 @@ def draw_maze_around_player(game_settings ):
                     pygame.draw.line(screen, (0, 160, 0), (draw_x, draw_y + cell_size), (draw_x + cell_size, draw_y + cell_size), 1)
                 if cell & 8:
                     pygame.draw.line(screen, (0, 160, 0), (draw_x, draw_y), (draw_x, draw_y + cell_size), 1)
-def draw_player_direction(game_settings ):
+def draw_player_direction(game_settings ):  #画面中心にプレイヤーの向きの▲を表示
     screen = game_settings['screen']
     player_dir = game_settings['player_dir']
     # プレイヤーの向きを表示
@@ -73,7 +73,7 @@ def draw_player_direction(game_settings ):
     text_surface = font.render(arrow_text, True, (255, 0, 0))  # 赤色の矢印
     text_rect = text_surface.get_rect(center=(screen.get_width() // 2 + 1, screen.get_height() // 2+1))
     screen.blit(text_surface, text_rect)
-def handle_keys(game_settings):
+def handle_keys(game_settings): #キー操作
     keys = pygame.key.get_pressed()
 
     if keys[pygame.K_SPACE]:
@@ -119,9 +119,6 @@ game_settings = {
 }
 
 ##### 初期設定
-# フォントの初期化
-pygame.font.init()
-#font = pygame.font.SysFont('meiryo', 24)  # 日本語フォントと大きさ
 # 迷路の生成
 random.seed()  # 乱数のシード値を設定
 generate_maze.generate_maze(0, 0,game_settings)  # 迷路生成を開始
@@ -130,18 +127,21 @@ generate_maze.add_random_rooms(2, 5, 5,game_settings)  # 2x2から5x5のサイ�
 
 # Pygameの初期化
 pygame.init()
+# フォントの初期化
+pygame.font.init()
 
 ##### ゲームのメインループ
 while True:
-    for event in pygame.event.get():
+    for event in pygame.event.get():    #ウィンドウを閉じたら終了
         if event.type == pygame.QUIT:
             pygame.quit()
             exit()
 
     handle_keys(game_settings)  # キー操作の処理
-    if game_settings['moved']:
+
+    if game_settings['moved']:  #画面描画フラグ
         draw_3d.draw_player_view(game_settings)  # プレイヤーの視点からの壁の描画
-        draw_text(game_settings)  # テキストの描画
+        draw_text(game_settings)  # 情報の表示
         draw_maze_around_player(game_settings)  # プレイヤーの周囲の迷路を描画
         draw_player_direction(game_settings)  # プレイヤーの向きを表示
         
@@ -149,3 +149,4 @@ while True:
         pygame.time.delay(200)  # スリープを挿入
 
     game_settings['moved'] = False  # 移動フラグをリセット
+       pygame.time.delay(10)  # スリープを挿入
