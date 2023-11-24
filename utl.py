@@ -59,7 +59,7 @@ def draw_maze_around_player(game_settings ):    #画面中心に周囲の地図�
                 if cell & 64:
                     pygame.draw.line(screen, (0, 160, 0), (draw_x+4, draw_y + cell_size-4), (draw_x + cell_size-4, draw_y + cell_size-4), 1)
                 if cell & 128:
-                    pygame.draw.line(screen, (0, 160, 0), (draw_x+4, draw_y+4), (draw_x+4, draw_y-4 + cell_size-4), 1)
+                    pygame.draw.line(screen, (0, 160, 0), (draw_x+4, draw_y+4), (draw_x+4, draw_y + cell_size-4), 1)
 def draw_player_direction(game_settings ):  #画面中心にプレイヤーの向きの▲を表示
     screen = game_settings['screen']
     player_dir = game_settings['player_dir']
