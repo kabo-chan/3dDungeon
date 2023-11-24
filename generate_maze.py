@@ -44,3 +44,22 @@ def add_random_rooms(min_size, max_size, num_rooms,game_settings):  #迷路内�
         for i in range(x, x + room_width):
             for j in range(y, y + room_height):
                 maze[j][i] = 0
+def add_doors(num_doors, game_settings):
+    maze = game_settings['maze']
+    N = game_settings['N']
+    directions = [0b10000, 0b100000, 0b1000000, 0b10000000]  # 北、東、南、西のドアを示すビット
+
+    for _ in range(num_doors):
+        while True:
+            x = random.randint(0, N - 1)
+            y = random.randint(0, N - 1)
+            wall_directions = [1, 2, 4, 8]  # 北、東、南、西の壁を示すビット
+            possible_doors = []
+
+            for dir_bit, door_bit in zip(wall_directions, directions):
+                if maze[y][x] & dir_bit:
+                    possible_doors.append(door_bit)
+
+            if possible_doors:
+                maze[y][x] |= random.choice(possible_doors)
+                break
