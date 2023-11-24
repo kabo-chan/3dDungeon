@@ -1,6 +1,8 @@
 import random
 
-def generate_maze(x, y,maze,N):    #迷路を生成する関数
+def generate_maze(x, y, game_settings):  # 迷路を生成する関数
+    maze = game_settings['maze']
+    N = game_settings['N']
     directions = [1, 2, 4, 8]
     random.shuffle(directions)
     for direction in directions:
@@ -11,10 +13,14 @@ def generate_maze(x, y,maze,N):    #迷路を生成する関数
         elif direction == 8: nx -= 1  # 西
 
         if 0 <= nx < N and 0 <= ny < N and maze[ny][nx] == 15:
-            remove_wall(x, y, direction,maze,N)
-            generate_maze(nx, ny,maze,N)
+            remove_wall(x, y, direction, game_settings)
+            generate_maze(nx, ny, game_settings)
 
-def remove_wall(x, y, direction,maze,N):  #指定された壁を取り除く関数
+
+def remove_wall(x, y, direction,game_settings):  #指定された壁を取り除く関数
+    maze = game_settings['maze']
+    N = game_settings['N']
+
     maze[y][x] &= ~direction
     if direction == 1 and y > 0:  # 北側の壁
         maze[y-1][x] &= ~4
@@ -25,7 +31,9 @@ def remove_wall(x, y, direction,maze,N):  #指定された壁を取り除く関�
     elif direction == 8 and x > 0:  # 西側の壁
         maze[y][x-1] &= ~2
 
-def add_random_rooms(maze, min_size, max_size, num_rooms,N):  #迷路内に大きな空間を作る
+def add_random_rooms(min_size, max_size, num_rooms,game_settings):  #迷路内に大きな空間を作る
+    maze = game_settings['maze']
+    N = game_settings['N']
     for _ in range(random.randint(2, num_rooms)):
         room_width = random.randint(min_size, max_size)
         room_height = random.randint(min_size, max_size)
