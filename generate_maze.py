@@ -1,4 +1,7 @@
 import random
+import pygame
+import utl
+
 
 def generate_maze(x, y, game_settings):  # 迷路を生成する関数
     maze = game_settings['maze']
@@ -51,8 +54,8 @@ def modified_add_random_rooms(min_size, max_size, num_rooms, game_settings):
     for _ in range(random.randint(2, num_rooms)):
         room_width = random.randint(min_size, max_size)
         room_height = random.randint(min_size, max_size)
-        x = random.randint(1, N - room_width-2)
-        y = random.randint(1, N - room_height-2)
+        x = random.randint(1, N - room_width-1)
+        y = random.randint(1, N - room_height-1)
 
         # Decide randomly whether to create a room with walls or without
         if random.choice([True, False]):  # 50% chance
@@ -127,3 +130,53 @@ def add_doors(num_doors, game_settings):
             if possible_doors:
                 maze[y][x] |= random.choice(possible_doors)
                 break
+
+# モジュールテスト
+if __name__ == "__main__":
+    pygame.init()  # pygame を初期化する
+
+    # フォントの初期化
+    pygame.font.init()
+    game_settings = {
+        'N': 20,
+        'maze': [[15 for _ in range(20)] for _ in range(20)],
+        'cell_size': 20,
+        'wire': True,
+        'player_x': 0,
+        'player_y': 0,
+        'player_dir': 0,
+        'wall_size': (800, 500),
+        'screen': pygame.display.set_mode((640, 480)),
+        'wall_color': (160, 160, 160),
+        'bg_color': (0, 0, 0),
+        'door_color': (152, 81, 75),
+        'num_walls': 5,
+        'moved': True,
+        'draw_minimap': True
+    }
+    # 迷路の生成
+    random.seed()  # 乱数のシード値を設定
+    generate_maze(0, 0, game_settings)  # 迷路生成を開始
+    # ランダムな部屋の追加
+    modified_add_random_rooms(2, 3, 10, game_settings)  # 2x2から5x5のサイズの部屋を2から5個追加
+    add_doors(30, game_settings)  # 10個前後のドアを迷路に追加
+
+    while True:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                exit()
+            elif event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_SPACE:  # スペースキーが押された場合
+                    # game_settings を初期化して新しい迷路を生成
+                    game_settings['maze'] = [[15 for _ in range(20)] for _ in range(20)]
+                    generate_maze(0, 0, game_settings)
+                    modified_add_random_rooms(2, 3, 10, game_settings)
+                    add_doors(30, game_settings)
+
+        # 迷路を描画（full=True でプレイヤーの座標を中央に設定）
+        game_settings['screen'].fill((0, 0, 0))
+        utl.draw_maze_around_player(game_settings, full=True)
+
+        # 画面を更新
+        pygame.display.flip()
