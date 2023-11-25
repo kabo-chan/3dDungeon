@@ -4,7 +4,9 @@ import pygame
 import utl
 
 def generate_maze(x, y, game_settings, maze_status):  # 迷路を生成する関数
-    maze = game_settings['maze']
+    #print(f'generate_maze({x},{y})')
+    maze_status[y][x] = 1
+    #maze = game_settings['maze']
     N = game_settings['N']
     directions = [1, 2, 4, 8]
     random.shuffle(directions)
@@ -21,6 +23,7 @@ def generate_maze(x, y, game_settings, maze_status):  # 迷路を生成する関
             generate_maze(nx, ny, game_settings,maze_status)
 
 def remove_wall(x, y, direction,game_settings):  #指定された壁を取り除く関数
+    #print(f'remove_wall({x},{y})')
     maze = game_settings['maze']
     N = game_settings['N']
 
@@ -36,12 +39,14 @@ def remove_wall(x, y, direction,game_settings):  #指定された壁を取り除
 
 # 未作成のセルを探す関数
 def find_uncreated_cell(N, maze_status):
+    #print('find_uncreated_cell')
     for y in range(N):
         for x in range(N):
             if maze_status[y][x] == 0:
                 return x, y
     return None  # 未作成のセルが見つからない場合は None を返す
-def modified_add_random_rooms(min_size, max_size, num_rooms, game_settings, maze_status):
+def add_random_rooms(min_size, max_size, num_rooms, game_settings, maze_status):
+    #print('add_random_rooms')
     maze = game_settings['maze']
     N = game_settings['N']
     for _ in range(num_rooms):
@@ -50,60 +55,69 @@ def modified_add_random_rooms(min_size, max_size, num_rooms, game_settings, maze
         x, y = find_valid_room_position(room_width, room_height, N, maze_status)
 
         if x is not None and y is not None:
-            if random.choice([True, False]):  # 50% chance
-                # 部屋内のセルを空にする（壁を取り除く）
-                for i in range(x, x + room_width):
-                    for j in range(y, y + room_height):
-                        maze[j][i] = 0  #四方の壁がない
-                        maze_status[j][i] = 2   #部屋
-                        #部屋の4辺に壁
-                        if i == x:
-                            maze[j][i - 1] |= 2
-                            maze[j][i] |= 8
-                        if i == (x + room_width - 1):
-                            maze[j][i + 1] |= 8
-                            maze[j][i] |= 2
-                        if j == y:
-                            maze[j - 1][i] |= 4
-                            maze[j][i] |= 1
-                        if j == (y + room_height - 1):
-                            maze[j + 1][i] |= 1
-                            maze[j][i] |= 4
+            # 部屋内のセルを空にする（壁を取り除く）
+            for i in range(x, x + room_width):
+                for j in range(y, y + room_height):
+                    maze[j][i] = maze[j][i] & ~0b1111  #四方の壁がない
+                    maze_status[j][i] = 2   #部屋
+                    #部屋の4辺に壁
+                    if i == x:
+                        maze[j][i - 1] |= 2
+                        maze[j][i] |= 8
+                    if i == (x + room_width - 1):
+                        maze[j][i + 1] |= 8
+                        maze[j][i] |= 2
+                    if j == y:
+                        maze[j - 1][i] |= 4
+                        maze[j][i] |= 1
+                    if j == (y + room_height - 1):
+                        maze[j + 1][i] |= 1
+                        maze[j][i] |= 4
 
-                # 部屋の壁を選択
-                walls = ['left', 'right', 'top', 'bottom']
-                selected_wall = random.choice(walls)
+            # 部屋の壁を選択
+            walls = ['left', 'right', 'top', 'bottom']
+            selected_wall = random.choice(walls)
 
-                # 扉の位置を決定
-                if selected_wall == 'left':
-                    door_position = random.randint(y, y + room_height - 1)
-                    maze[door_position][x - 1] |= 32  # 左の壁の扉
-                    maze[door_position][x] |= 128  # 左の壁の扉
-                elif selected_wall == 'right':
-                    door_position = random.randint(y, y + room_height - 1)
-                    maze[door_position][x + room_width - 1] |= 32  # 右の壁の扉
-                    maze[door_position][x + room_width] |= 128  # 右の壁の扉
-                elif selected_wall == 'top':
-                    door_position = random.randint(x, x + room_width - 1)
-                    maze[y - 1][door_position] |= 64  # 上の壁の扉
-                    maze[y][door_position] |= 16  # 上の壁の扉
-                elif selected_wall == 'bottom':
-                    door_position = random.randint(x, x + room_width - 1)
-                    maze[y + room_height - 1][door_position] |= 64  # 下の壁の扉
-                    maze[y + room_height][door_position] |= 16  # 下の壁の扉
-            else:
-                # Create a room without surrounding walls
-                for i in range(x, x + room_width):
-                    for j in range(y, y + room_height):
-                        maze[j][i] = 0  # Clear the cell
-                        maze_status[j][i] = 2  # 部屋
-                        if i == x : maze[j][i-1] &= ~2   #左のマスの右側の壁も取り除く
-                        if i == (x + room_width-1) : maze[j][i+1] &= ~8   #右のマスの左側の壁も取り除く
-                        if j == y : maze[j-1][i] &= ~4
-                        if j == (y + room_height-1) : maze[j+1][i] &= ~1
+            # 扉の位置を決定
+            if selected_wall == 'left':
+                door_position = random.randint(y, y + room_height - 1)
+                maze[door_position][x - 1] |= 32  # 左の壁の扉
+                maze[door_position][x] |= 128  # 左の壁の扉
+            elif selected_wall == 'right':
+                door_position = random.randint(y, y + room_height - 1)
+                maze[door_position][x + room_width - 1] |= 32  # 右の壁の扉
+                maze[door_position][x + room_width] |= 128  # 右の壁の扉
+            elif selected_wall == 'top':
+                door_position = random.randint(x, x + room_width - 1)
+                maze[y - 1][door_position] |= 64  # 上の壁の扉
+                maze[y][door_position] |= 16  # 上の壁の扉
+            elif selected_wall == 'bottom':
+                door_position = random.randint(x, x + room_width - 1)
+                maze[y + room_height - 1][door_position] |= 64  # 下の壁の扉
+                maze[y + room_height][door_position] |= 16  # 下の壁の扉
+
+def add_random_spaces(min_size, max_size, num_rooms, game_settings, maze_status):
+    #print('add_random_space')
+    maze = game_settings['maze']
+    N = game_settings['N']
+    for _ in range(num_rooms):
+        room_width = random.randint(min_size, max_size)
+        room_height = random.randint(min_size, max_size)
+        x, y = find_valid_room_position(room_width, room_height, N, maze_status)
+        if x is not None and y is not None:
+            # Create a room without surrounding walls
+            for i in range(x, x + room_width):
+                for j in range(y, y + room_height):
+                    maze[j][i] = 0  # Clear the cell
+                    maze_status[j][i] = 2  # 部屋
+                    if i == x : maze[j][i-1] &= ~2   #左のマスの右側の壁も取り除く
+                    if i == (x + room_width-1) : maze[j][i+1] &= ~8   #右のマスの左側の壁も取り除く
+                    if j == y : maze[j-1][i] &= ~4
+                    if j == (y + room_height-1) : maze[j+1][i] &= ~1
 
 # 部屋の位置を決定する関数
 def find_valid_room_position(room_width, room_height, N, maze_status):
+    #print('find_valid_room_position')
     for _ in range(100):  # 最大100回試行
         x = random.randint(1, N - room_width - 1)
         y = random.randint(1, N - room_height - 1)
@@ -149,8 +163,8 @@ def generate_new_maze(game_settings):
     game_settings['maze'] = [[15 for _ in range(N)] for _ in range(N)]
     maze_status = [[0 for _ in range(N)] for _ in range(N)]  # 迷路のセルのステータス
     
-    modified_add_random_rooms(2, 3, 8, game_settings, maze_status)
-
+    add_random_spaces(2, 3, 1, game_settings, maze_status)
+    add_random_rooms(2, 3, 20, game_settings, maze_status)
     start_cell = find_uncreated_cell(N, maze_status)
     while start_cell:
         x, y = start_cell
@@ -184,7 +198,7 @@ if __name__ == "__main__":
     # 迷路の生成
     random.seed()  # 乱数のシード値を設定
     generate_new_maze(game_settings)  # 新しい迷路生成を開始
-
+    draw_flag= True
     while True:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -194,10 +208,12 @@ if __name__ == "__main__":
                 if event.key == pygame.K_SPACE:  # スペースキーが押された場合
                     # game_settings を初期化して新しい迷路を生成
                     generate_new_maze(game_settings)
-
-        # 迷路を描画（full=True でプレイヤーの座標を中央に設定）
-        game_settings['screen'].fill((0, 0, 0))
-        utl.draw_maze_around_player(game_settings, full=True)
-
-        # 画面を更新
-        pygame.display.flip()
+                    draw_flag= True
+        if draw_flag:
+            # 迷路を描画（full=True でプレイヤーの座標を中央に設定）
+            game_settings['screen'].fill((0, 0, 0))
+            utl.draw_maze_around_player(game_settings, full=True)
+            # 画面を更新
+            pygame.display.flip()
+            draw_flag = False
+        pygame.time.delay(100)  # スリープを挿入
