@@ -55,7 +55,7 @@ def modified_add_random_rooms(min_size, max_size, num_rooms, game_settings):
         y = random.randint(1, N - room_height-2)
 
         # Decide randomly whether to create a room with walls or without
-        if True:#random.choice([True, False]):  # 50% chance
+        if #random.choice([True, False]):  # 50% chance
             # Create a room surrounded by walls
         # 部屋内のセルを空にする（壁を取り除く）
             for i in range(x, x + room_width):
