@@ -14,6 +14,9 @@ def handle_keys(game_settings): #キー操作
     if keys[pygame.K_q]:
         game_settings['num_walls'] = (game_settings['num_walls'] % 8) + 1
         game_settings['moved'] = True
+    if keys[pygame.K_e]:
+        game_settings['draw_minimap'] = not game_settings['draw_minimap'] 
+        game_settings['moved'] = True
     direction_mapping = {
         pygame.K_a: -1,  # 左に90度回転
         pygame.K_d: 1,   # 右に90度回転
@@ -48,7 +51,8 @@ game_settings = {
     'bg_color': (0, 0, 0),
     'door_color':(152,81,75),
     'num_walls': 5,
-    'moved':True
+    'moved':True,
+    'draw_minimap':True
 }
 
 ##### 初期設定
@@ -56,7 +60,8 @@ game_settings = {
 random.seed()  # 乱数のシード値を設定
 generate_maze.generate_maze(0, 0,game_settings)  # 迷路生成を開始
 # ランダムな部屋の追加
-generate_maze.add_random_rooms(2, 5, 5,game_settings)  # 2x2から5x5のサイズの部屋を2から5個追加
+#generate_maze.add_random_rooms(3, 5, 5,game_settings)  # 2x2から5x5のサイズの部屋を2から5個追加
+generate_maze.modified_add_random_rooms(2, 3, 10,game_settings)  # 2x2から5x5のサイズの部屋を2から5個追加
 generate_maze.add_doors(30, game_settings)  # 10個前後のドアを迷路に追加
 
 # Pygameの初期化
@@ -76,8 +81,9 @@ while True:
     if game_settings['moved']:  #画面描画フラグ
         draw_3d.draw_player_view(game_settings)  # プレイヤーの視点からの壁の描画
         utl.draw_text(game_settings)  # 情報の表示
-        utl.draw_maze_around_player(game_settings)  # プレイヤーの周囲の迷路を描画
-        utl.draw_player_direction(game_settings)  # プレイヤーの向きを表示
+        if game_settings['draw_minimap']:
+            utl.draw_maze_around_player(game_settings)  # プレイヤーの周囲の迷路を描画
+            utl.draw_player_direction(game_settings)  # プレイヤーの向きを表示
         
         pygame.display.flip()  # 画面の更新
         pygame.time.delay(200)  # スリープを挿入

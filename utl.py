@@ -17,24 +17,35 @@ def draw_text(game_settings ):  #画面したに情報表示
 
     # テキストを画面に描画
     screen.blit(text_surface, (10, screen.get_height()-50))
-def draw_maze_around_player(game_settings ):    #画面中心に周囲の地図を表示
+def draw_maze_around_player(game_settings, full=False):
     screen = game_settings['screen']
     maze = game_settings['maze']
-    player_x = game_settings['player_x']
-    player_y = game_settings['player_y']
     cell_size = game_settings['cell_size']
     num_walls = game_settings['num_walls']
     N = game_settings['N']
+    player_x = game_settings['player_x']
+    player_y = game_settings['player_y']
+
+    if full:
+        # 画面の中央にプレイヤーを表示する場合、プレイヤーの座標を計算する
+        cx = N // 2
+        cy = N // 2
+        view = 20
+    else:
+        cx = player_x
+        cy = player_y
+        view = num_walls
+
     # 画面の中央座標を計算
     screen_center_x = screen.get_width() // 2 - cell_size // 2
     screen_center_y = screen.get_height() // 2 - cell_size // 2
 
     # プレイヤーを中心に周囲の迷路を描画する
-    view = int(num_walls/2)
-    for i in range(-view, view+1):
-        for j in range(-view, view+1):
-            x = player_x + j
-            y = player_y + i
+    view = int(view / 2)
+    for i in range(-view, view + 1):
+        for j in range(-view, view + 1):
+            x = cx + j
+            y = cy + i
 
             # 描画座標を計算
             draw_x = screen_center_x + j * cell_size
@@ -53,13 +64,14 @@ def draw_maze_around_player(game_settings ):    #画面中心に周囲の地図�
                     pygame.draw.line(screen, (0, 160, 0), (draw_x, draw_y), (draw_x, draw_y + cell_size), 1)
                 # プレイヤー以外のセルのドアを描画
                 if cell & 16:
-                    pygame.draw.line(screen, (0, 160, 0), (draw_x+4, draw_y+4), (draw_x + cell_size-4, draw_y+4), 1)
+                    pygame.draw.line(screen, (0, 160, 0), (draw_x + 4, draw_y + 4), (draw_x + cell_size - 4, draw_y + 4), 1)
                 if cell & 32:
-                    pygame.draw.line(screen, (0, 160, 0), (draw_x + cell_size-4, draw_y+4), (draw_x + cell_size-4, draw_y + cell_size-4), 1)
+                    pygame.draw.line(screen, (0, 160, 0), (draw_x + cell_size - 4, draw_y + 4), (draw_x + cell_size - 4, draw_y + cell_size - 4), 1)
                 if cell & 64:
-                    pygame.draw.line(screen, (0, 160, 0), (draw_x+4, draw_y + cell_size-4), (draw_x + cell_size-4, draw_y + cell_size-4), 1)
+                    pygame.draw.line(screen, (0, 160, 0), (draw_x + 4, draw_y + cell_size - 4), (draw_x + cell_size - 4, draw_y + cell_size - 4), 1)
                 if cell & 128:
-                    pygame.draw.line(screen, (0, 160, 0), (draw_x+4, draw_y+4), (draw_x+4, draw_y + cell_size-4), 1)
+                    pygame.draw.line(screen, (0, 160, 0), (draw_x + 4, draw_y + 4), (draw_x + 4, draw_y + cell_size - 4), 1)
+
 def draw_player_direction(game_settings ):  #画面中心にプレイヤーの向きの▲を表示
     screen = game_settings['screen']
     player_dir = game_settings['player_dir']
