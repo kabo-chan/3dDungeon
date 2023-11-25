@@ -58,11 +58,8 @@ game_settings = {
 ##### 初期設定
 # 迷路の生成
 random.seed()  # 乱数のシード値を設定
-generate_maze.generate_maze(0, 0,game_settings)  # 迷路生成を開始
-# ランダムな部屋の追加
-#generate_maze.add_random_rooms(3, 5, 5,game_settings)  # 2x2から5x5のサイズの部屋を2から5個追加
-generate_maze.modified_add_random_rooms(2, 3, 10,game_settings)  # 2x2から5x5のサイズの部屋を2から5個追加
-generate_maze.add_doors(30, game_settings)  # 10個前後のドアを迷路に追加
+generate_maze.generate_new_maze(game_settings)  # 迷路生成を開始
+
 
 # Pygameの初期化
 pygame.init()
