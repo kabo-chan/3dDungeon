@@ -163,13 +163,83 @@ def generate_new_maze(game_settings):
     game_settings['maze'] = [[15 for _ in range(N)] for _ in range(N)]
     maze_status = [[0 for _ in range(N)] for _ in range(N)]  # 迷路のセルのステータス
     
-    add_random_spaces(2, 3, 1, game_settings, maze_status)
-    add_random_rooms(2, 3, 20, game_settings, maze_status)
+    add_random_spaces(2, 2, 1, game_settings, maze_status)
+    add_random_rooms(2, 3, 40, game_settings, maze_status)
     start_cell = find_uncreated_cell(N, maze_status)
     while start_cell:
         x, y = start_cell
         generate_maze(x, y, game_settings, maze_status)
         start_cell = find_uncreated_cell(N, maze_status)
+    # 通れない部屋がないか確認
+    maze_check = [[0 for _ in range(N)] for _ in range(N)]
+    check_passability(game_settings['maze'], maze_check, 0, 0)
+    print(maze_check)
+    # 通れない部屋があるか確認
+    while any(cell == 0 for row in maze_check for cell in row):
+        print("通れない部屋があります。")
+                
+        # 通れない部屋の隣接するセルが１ならリストに追加
+        adjacent_cells = []
+        for y in range(N):
+            for x in range(N):
+                if maze_check[y][x] == 0:
+
+                    # 上
+                    if y > 0 and maze_check[y - 1][x] == 1:
+                        adjacent_cells.append((y, x,0))
+
+                    # 右
+                    if x < N - 1 and maze_check[y][x + 1] == 1:
+                        adjacent_cells.append((y, x,1))
+
+                    # 下
+                    if y < N - 1 and maze_check[y + 1][x] == 1:
+                        adjacent_cells.append((y, x,2))
+
+                    # 左
+                    if x > 0 and maze_check[y][x - 1] == 1:
+                        adjacent_cells.append((y, x,3))
+
+        if adjacent_cells:
+            # ランダムに1つのセルを選択
+            random_cell = random.choice(adjacent_cells)
+            y, x, direction = random_cell
+
+            # 選んだ方向に扉を設置
+            if direction == 0:  # 上
+                game_settings['maze'][y][x] |= 0b10000
+                game_settings['maze'][y-1][x] |= 0b1000000
+            elif direction == 1:  # 右
+                game_settings['maze'][y][x] |= 0b100000
+                game_settings['maze'][y][x+1] |= 0b10000000
+            elif direction == 2:  # 下
+                game_settings['maze'][y][x] |= 0b1000000
+                game_settings['maze'][y+1][x] |= 0b10000
+            elif direction == 3:  # 左
+                game_settings['maze'][y][x] |= 0b10000000
+                game_settings['maze'][y][x-1] |= 0b100000
+            maze_check = [[0 for _ in range(N)] for _ in range(N)]
+            check_passability(game_settings['maze'], maze_check, 0, 0)
+            print(maze_check)
+
+
+def check_passability(maze, maze_check, x, y):
+    N = len(maze)
+
+    if x < 0 or x >= N or y < 0 or y >= N or maze_check[y][x] == 1:
+        return
+    
+    maze_check[y][x] = 1  # 通行可能なセルとマーク
+
+    # 上下左右のセルを再帰的にチェック
+    if (maze[y][x] & 0b0001 == 0) or (maze[y][x] & 0b00010000 == 0b00010000):
+        check_passability(maze, maze_check, x, y - 1)  # 上
+    if (maze[y][x] & 0b0010 == 0) or (maze[y][x] & 0b00100000 == 0b00100000):
+        check_passability(maze, maze_check, x + 1, y)  # 右
+    if (maze[y][x] & 0b0100 == 0) or (maze[y][x] & 0b01000000 == 0b01000000):
+        check_passability(maze, maze_check, x, y + 1)  # 下
+    if (maze[y][x] & 0b1000 == 0) or (maze[y][x] & 0b10000000 == 0b10000000):
+        check_passability(maze, maze_check, x - 1, y)  # 左
 
 # モジュールテスト
 if __name__ == "__main__":
