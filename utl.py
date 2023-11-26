@@ -52,6 +52,8 @@ def draw_maze_around_player(game_settings, full=False):
             draw_y = screen_center_y + i * cell_size
 
             if 0 <= x < N and 0 <= y < N:
+                floor_obj = ''
+                floor_obj_color = 0,0,0
                 cell = maze[y][x]
                 # プレイヤー以外のセルの壁を描画
                 if cell & 1:
@@ -71,6 +73,25 @@ def draw_maze_around_player(game_settings, full=False):
                     pygame.draw.line(screen, (160, 160, 0), (draw_x + 4, draw_y + cell_size - 4), (draw_x + cell_size - 4, draw_y + cell_size - 4), 1)
                 if cell & 128:
                     pygame.draw.line(screen, (160, 160, 0), (draw_x + 4, draw_y + 4), (draw_x + 4, draw_y + cell_size - 4), 1)
+                floor = game_settings['maze_floor'][y][x]
+                if floor & 2:   #room
+                    floor_obj = '・'
+                    floor_obj_color = 120,120,0
+                if floor & 4:   #下り階段
+                    floor_obj = '⇓'
+                    floor_obj_color = 200,0,0
+                if floor & 8:   #上り階段
+                    floor_obj = '⇑'
+                    floor_obj_color = 200,0,0
+                   
+                if floor_obj != '' : 
+                    font = pygame.font.SysFont('meiryo', cell_size // 4 * 3)  # 日本語フォントと大きさ
+                    text_width, text_height = font.size(floor_obj)
+                    text_surface = font.render(floor_obj, True, floor_obj_color)
+                    screen.blit(text_surface, (draw_x + (cell_size - text_width) / 2, draw_y + (cell_size - text_height) / 2))
+                    pygame.display.flip() 
+
+
 
 def draw_player_direction(game_settings ):  #画面中心にプレイヤーの向きの▲を表示
     screen = game_settings['screen']

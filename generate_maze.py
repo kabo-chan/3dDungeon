@@ -3,6 +3,7 @@
 import random
 import pygame
 import utl
+from copy import deepcopy
 
 def generate_maze(x, y, game_settings, maze_status):  # 迷路を生成する関数
     #print(f'generate_maze({x},{y})')
@@ -145,21 +146,6 @@ def find_valid_room_position(room_width, room_height, N, maze_status):  # 部屋
     return None, None  # 適切な位置が見つからない場合は None を返す
 
 
-
-    for _ in range(num_doors):
-        while True:
-            x = random.randint(0, N - 1)
-            y = random.randint(0, N - 1)
-            wall_directions = [1, 2, 4, 8]  # 北、東、南、西の壁を示すビット
-            possible_doors = []
-
-            for dir_bit, door_bit in zip(wall_directions, directions):
-                if maze[y][x] & dir_bit:
-                    possible_doors.append(door_bit)
-
-            if possible_doors:
-                maze[y][x] |= random.choice(possible_doors)
-                break
 def check_all_wall_door_consistency(maze):  #　迷路の壁とドアの整合性の確認
     N = len(maze)
     for y in range(N):
@@ -187,13 +173,62 @@ def check_passability(maze, maze_check, x, y):  #通れない部屋がないか�
         check_passability(maze, maze_check, x, y + 1)  # 下
     if (maze[y][x] & 0b1000 == 0) or (maze[y][x] & 0b10000000 == 0b10000000):
         check_passability(maze, maze_check, x - 1, y)  # 左
+def decode_maze_cell(cell_value):
+    """
+    Decodes the cell value of the maze to determine the presence of walls and doors.
+    
+    Args:
+    cell_value (int): The value of the maze cell.
+
+    Returns:
+    tuple: A tuple containing two lists, the first list represents the walls (1 for wall, 0 for no wall)
+           in the order [north, east, south, west], and the second list represents the doors in the same order.
+    """
+    walls = [(cell_value >> i) & 1 for i in range(4)]
+    doors = [(cell_value >> (i + 4)) & 1 for i in range(4)]
+    return walls, doors
+def find_staircase_locations_optimal(maze):
+    """
+    Finds the optimal locations for staircase placement in the maze based on the presence of walls and doors.
+
+    Args:
+    maze (list): The maze data.
+
+    Returns:
+    list: A list of tuples, each tuple representing the (x, y) coordinates and category of an optimal staircase location.
+    """
+    maze_width = len(maze[0])
+    maze_height = len(maze)
+    staircase_locations = []
+
+    for y in range(maze_height):
+        for x in range(maze_width):
+            walls, doors = decode_maze_cell(maze[y][x])
+
+            # Criteria 1: Not next to a door
+            if not any(doors):
+                if walls.count(0) == 4:
+                    staircase_locations.append((x, y, "No walls"))
+                elif walls.count(1) == 3:
+                    staircase_locations.append((x, y, "3 walls"))
+                elif walls.count(1) ==2:
+                    staircase_locations.append((x, y, "2 walls"))
+                else:
+                    staircase_locations.append((x, y, "Other"))
+            else:
+                # If next to a door, classify as 'Other'
+                staircase_locations.append((x, y, "Other"))
+    #print(staircase_locations)
+    return staircase_locations
+
 def generate_new_maze(game_settings):   # 新しい迷路を生成
     N = game_settings['N']
     game_settings['maze'] = [[15 for _ in range(N)] for _ in range(N)]
     maze_status = [[0 for _ in range(N)] for _ in range(N)]  # 迷路のセルのステータス
     
-    add_random_spaces(2, 2, 2, game_settings, maze_status)
-    add_random_rooms(2, 2, 0, game_settings, maze_status)
+    random.seed()
+    add_random_spaces(2, 2, 5, game_settings, maze_status)
+    add_random_rooms(2, 3, 32, game_settings, maze_status)
     
     start_cell = find_uncreated_cell(N, maze_status)
     while start_cell:
@@ -241,55 +276,17 @@ def generate_new_maze(game_settings):   # 新しい迷路を生成
         check_passability(game_settings['maze'], maze_check, 0, 0)
     #check_all_wall_door_consistency(game_settings['maze'])
     #print(game_settings['maze'])
-    print(random.choice(find_staircase_locations_optimal(game_settings['maze'])))
+    staircase_locations=find_staircase_locations_optimal(game_settings['maze'])
+    locations_only = [(x, y, category) for x, y, category in staircase_locations if category in ['3 walls', 'No walls']] 
+    if not locations_only : 
+        locations_only = [(x, y, category) for x, y, category in staircase_locations if category == '2 walls']
+
+    x,y,_ = random.choice(locations_only)
+    #print(staircase_locations)
+    game_settings['maze_floor'] = deepcopy(maze_status)
+    game_settings['maze_floor'][y][x] += 4
+    print(x,y)
     
-def decode_maze_cell(cell_value):
-    """
-    Decodes the cell value of the maze to determine the presence of walls and doors.
-    
-    Args:
-    cell_value (int): The value of the maze cell.
-
-    Returns:
-    tuple: A tuple containing two lists, the first list represents the walls (1 for wall, 0 for no wall)
-           in the order [north, east, south, west], and the second list represents the doors in the same order.
-    """
-    walls = [(cell_value >> i) & 1 for i in range(4)]
-    doors = [(cell_value >> (i + 4)) & 1 for i in range(4)]
-    return walls, doors
-def find_staircase_locations_optimal(maze):
-    """
-    Finds the optimal locations for staircase placement in the maze based on the presence of walls and doors.
-
-    Args:
-    maze (list): The maze data.
-
-    Returns:
-    list: A list of tuples, each tuple representing the (x, y) coordinates and category of an optimal staircase location.
-    """
-    maze_width = len(maze[0])
-    maze_height = len(maze)
-    staircase_locations = []
-
-    for y in range(maze_height):
-        for x in range(maze_width):
-            walls, doors = decode_maze_cell(maze[y][x])
-
-            # Criteria 1: Not next to a door
-            if not any(doors):
-                if walls.count(0) == 4:
-                    staircase_locations.append((x, y, "No walls"))
-                elif walls.count(1) == 3:
-                    staircase_locations.append((x, y, "3 walls"))
-                elif walls.count(1) ==2:
-                    staircase_locations.append((x, y, "2 walls"))
-                else:
-                    staircase_locations.append((x, y, "Other"))
-            else:
-                # If next to a door, classify as 'Other'
-                staircase_locations.append((x, y, "Other"))
-    print(staircase_locations)
-    return staircase_locations
 
 
 if __name__ == "__main__":  # モジュールテスト
@@ -297,7 +294,7 @@ if __name__ == "__main__":  # モジュールテスト
 
     # フォントの初期化
     pygame.font.init()
-    N=10
+    N=20
     game_settings = {
         'N': N,
         'maze': [[0b1111 for _ in range(N)] for _ in range(N)],
