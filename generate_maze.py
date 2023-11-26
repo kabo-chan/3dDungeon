@@ -8,34 +8,39 @@ def generate_maze(x, y, game_settings, maze_status):  # 迷路を生成する関
     maze_status[y][x] = 1
     #maze = game_settings['maze']
     N = game_settings['N']
-    directions = [1, 2, 4, 8]
+    directions = [0,1,2,3]
     random.shuffle(directions)
     for direction in directions:
         nx, ny = x, y
-        if direction == 1: ny -= 1  # 北
-        elif direction == 2: nx += 1  # 東
-        elif direction == 4: ny += 1  # 南
-        elif direction == 8: nx -= 1  # 西
+        if direction == 0: ny -= 1  # 北
+        elif direction == 1: nx += 1  # 東
+        elif direction == 2: ny += 1  # 南
+        elif direction == 3: nx -= 1  # 西
 
         if 0 <= nx < N and 0 <= ny < N and maze_status[ny][nx] == 0:
-            remove_wall(x, y, direction, game_settings)
+            remove_wall(y, x, direction, game_settings)
             maze_status[ny][nx] = 1
             generate_maze(nx, ny, game_settings,maze_status)
 
-def remove_wall(x, y, direction,game_settings):  #指定された壁を取り除く関数
-    #print(f'remove_wall({x},{y})')
+def remove_wall(y, x, direction,game_settings):  #指定された壁を取り除く関数
+    #print(f'remove_wall({x},{y} d={direction})')
     maze = game_settings['maze']
     N = game_settings['N']
 
-    maze[y][x] &= ~direction
-    if direction == 1 and y > 0:  # 北側の壁
-        maze[y-1][x] &= ~4
-    elif direction == 2 and x < N-1:  # 東側の壁
-        maze[y][x+1] &= ~8
-    elif direction == 4 and y < N-1:  # 南側の壁
-        maze[y+1][x] &= ~1
-    elif direction == 8 and x > 0:  # 西側の壁
-        maze[y][x-1] &= ~2
+    #maze[y][x] &= ~(1 << direction)  # 該当するビットをクリアして壁を取り除く
+
+    if direction == 0 :  # 北側の壁
+        maze[y][x] &= ~1
+        if y>0 : maze[y-1][x] &= ~4
+    if direction == 1 :  # 東側の壁
+        maze[y][x] &= ~2
+        if x+1<N : maze[y][x+1] &= ~8
+    if direction == 2 :  # 南側の壁
+        maze[y][x] &= ~4
+        if y+1<N : maze[y+1][x] &= ~1
+    if direction == 3 :  # 西側の壁
+        maze[y][x] &= ~8
+        if x>0 : maze[y][x-1] &= ~2
 
 # 未作成のセルを探す関数
 def find_uncreated_cell(N, maze_status):
@@ -45,6 +50,45 @@ def find_uncreated_cell(N, maze_status):
             if maze_status[y][x] == 0:
                 return x, y
     return None  # 未作成のセルが見つからない場合は None を返す
+def build_wall(y,x,direction,game_settings):
+    maze = game_settings['maze']
+    N = game_settings['N']
+    if direction == 0:  #上
+        maze[y][x] |= 1
+        if y>0 : maze[y - 1][x] |= 4
+    if direction == 1:  #右
+        maze[y][x] |= 2
+        if x+1<N : maze[y][x + 1] |= 8
+    if direction == 2:   #下
+        maze[y][x] |= 4
+        if y+1<N : maze[y + 1][x] |= 1
+    if direction == 3:  #左
+        maze[y][x] |= 8
+        if x>0 : maze[y][x - 1] |= 2
+
+
+def build_door(y,x,direction,game_settings):
+    print(f'build_door y={y} x={x}')
+    maze = game_settings['maze']
+    N = game_settings['N']
+    #ドアがマップ端に作られる場合、マップの逆にもドアをつける
+    if direction == 0:  #上16 
+        maze[y][x] |= 16
+        if y>0 : maze[y - 1][x] |= 64
+        else: maze[N][x] |= 64
+    if direction == 1:  #右32
+        maze[y][x] |= 32
+        if x+1<N : maze[y][x + 1] |= 128
+        else: maze[y][0] |= 128
+    if direction == 2:   #下64
+        maze[y][x] |= 64
+        if y+1<N : maze[y + 1][x] |= 16
+        else: maze[0][x] |= 16
+    if direction == 3:  #左128
+        maze[y][x] |= 128
+        if x>0 : maze[y][x - 1] |= 32
+        else: maze[y][N] |= 32
+
 def add_random_rooms(min_size, max_size, num_rooms, game_settings, maze_status):
     #print('add_random_rooms')
     maze = game_settings['maze']
@@ -61,40 +105,12 @@ def add_random_rooms(min_size, max_size, num_rooms, game_settings, maze_status):
                     maze[j][i] = maze[j][i] & ~0b1111  #四方の壁がない
                     maze_status[j][i] = 2   #部屋
                     #部屋の4辺に壁
-                    if i == x:
-                        maze[j][i - 1] |= 2
-                        maze[j][i] |= 8
-                    if i == (x + room_width - 1):
-                        maze[j][i + 1] |= 8
-                        maze[j][i] |= 2
-                    if j == y:
-                        maze[j - 1][i] |= 4
-                        maze[j][i] |= 1
-                    if j == (y + room_height - 1):
-                        maze[j + 1][i] |= 1
-                        maze[j][i] |= 4
+                    if i == x                       :build_wall(j,i,3,game_settings)    #左
+                    if i == (x + room_width - 1)    :build_wall(j,i,1,game_settings)    #右
+                    if j == y                       :build_wall(j,i,0,game_settings)   #上 
+                    if j == (y + room_height - 1)   :build_wall(j,i,2,game_settings) #下
 
-            # 部屋の壁を選択
-            walls = ['left', 'right', 'top', 'bottom']
-            selected_wall = random.choice(walls)
 
-            # 扉の位置を決定
-            if selected_wall == 'left':
-                door_position = random.randint(y, y + room_height - 1)
-                maze[door_position][x - 1] |= 32  # 左の壁の扉
-                maze[door_position][x] |= 128  # 左の壁の扉
-            elif selected_wall == 'right':
-                door_position = random.randint(y, y + room_height - 1)
-                maze[door_position][x + room_width - 1] |= 32  # 右の壁の扉
-                maze[door_position][x + room_width] |= 128  # 右の壁の扉
-            elif selected_wall == 'top':
-                door_position = random.randint(x, x + room_width - 1)
-                maze[y - 1][door_position] |= 64  # 上の壁の扉
-                maze[y][door_position] |= 16  # 上の壁の扉
-            elif selected_wall == 'bottom':
-                door_position = random.randint(x, x + room_width - 1)
-                maze[y + room_height - 1][door_position] |= 64  # 下の壁の扉
-                maze[y + room_height][door_position] |= 16  # 下の壁の扉
 
 def add_random_spaces(min_size, max_size, num_rooms, game_settings, maze_status):
     #print('add_random_space')
@@ -108,19 +124,19 @@ def add_random_spaces(min_size, max_size, num_rooms, game_settings, maze_status)
             # Create a room without surrounding walls
             for i in range(x, x + room_width):
                 for j in range(y, y + room_height):
-                    maze[j][i] = 0  # Clear the cell
-                    maze_status[j][i] = 2  # 部屋
-                    if i == x : maze[j][i-1] &= ~2   #左のマスの右側の壁も取り除く
-                    if i == (x + room_width-1) : maze[j][i+1] &= ~8   #右のマスの左側の壁も取り除く
-                    if j == y : maze[j-1][i] &= ~4
-                    if j == (y + room_height-1) : maze[j+1][i] &= ~1
+                    maze[j][i] = maze[j][i] & ~0b1111  #四方の壁がない
+                    maze_status[j][i] = 1  # 壁のない部屋は通路扱い
+                    if i == x                   : remove_wall(j,i,3,game_settings)   #左のマスの右側の壁も取り除く
+                    if i == (x + room_width-1)  : remove_wall(j,i,1,game_settings)   #右のマスの左側の壁も取り除く
+                    if j == y                   : remove_wall(j,i,0,game_settings)
+                    if j == (y + room_height-1) : remove_wall(j,i,2,game_settings)
 
 # 部屋の位置を決定する関数
 def find_valid_room_position(room_width, room_height, N, maze_status):
     #print('find_valid_room_position')
     for _ in range(100):  # 最大100回試行
-        x = random.randint(1, N - room_width - 1)
-        y = random.randint(1, N - room_height - 1)
+        x = random.randint(0, N - room_width)
+        y = random.randint(0, N - room_height)
 
         # 部屋が既存の部屋と重ならないかチェック
         overlapping = False
@@ -163,17 +179,26 @@ def generate_new_maze(game_settings):
     game_settings['maze'] = [[15 for _ in range(N)] for _ in range(N)]
     maze_status = [[0 for _ in range(N)] for _ in range(N)]  # 迷路のセルのステータス
     
-    add_random_spaces(2, 2, 1, game_settings, maze_status)
-    add_random_rooms(2, 3, 40, game_settings, maze_status)
+    add_random_spaces(2, 3, 10, game_settings, maze_status)
+    add_random_rooms(2, 3, 30, game_settings, maze_status)
+
     start_cell = find_uncreated_cell(N, maze_status)
     while start_cell:
         x, y = start_cell
         generate_maze(x, y, game_settings, maze_status)
         start_cell = find_uncreated_cell(N, maze_status)
+    #　迷宮の外枠を作る
+    for x in range(N):
+        game_settings['maze'][0][x] |= 1
+        game_settings['maze'][N-1][x] |= 4
+    for y in range(N):
+        game_settings['maze'][y][0] |= 8
+        game_settings['maze'][y][N-1] |= 2
+
     # 通れない部屋がないか確認
     maze_check = [[0 for _ in range(N)] for _ in range(N)]
     check_passability(game_settings['maze'], maze_check, 0, 0)
-    print(maze_check)
+    #print(maze_check)
     # 通れない部屋があるか確認
     while any(cell == 0 for row in maze_check for cell in row):
         print("通れない部屋があります。")
@@ -206,22 +231,30 @@ def generate_new_maze(game_settings):
             y, x, direction = random_cell
 
             # 選んだ方向に扉を設置
-            if direction == 0:  # 上
-                game_settings['maze'][y][x] |= 0b10000
-                game_settings['maze'][y-1][x] |= 0b1000000
-            elif direction == 1:  # 右
-                game_settings['maze'][y][x] |= 0b100000
-                game_settings['maze'][y][x+1] |= 0b10000000
-            elif direction == 2:  # 下
-                game_settings['maze'][y][x] |= 0b1000000
-                game_settings['maze'][y+1][x] |= 0b10000
-            elif direction == 3:  # 左
-                game_settings['maze'][y][x] |= 0b10000000
-                game_settings['maze'][y][x-1] |= 0b100000
-            maze_check = [[0 for _ in range(N)] for _ in range(N)]
-            check_passability(game_settings['maze'], maze_check, 0, 0)
-            print(maze_check)
+            build_door(y,x,direction,game_settings)
+             
+        maze_check = [[0 for _ in range(N)] for _ in range(N)]
+        check_passability(game_settings['maze'], maze_check, 0, 0)
+        #print_maze_status(maze_status)
+    check_all_wall_door_consistency(game_settings['maze'])
 
+
+def check_all_wall_door_consistency(maze):
+    N = len(maze)
+    for y in range(N):
+        for x in range(N):
+            if x+1<N :
+                if (maze[y][x] >> 1 & 1) != (maze[y][x+1] >> 3 & 1 ) : 
+                    print(f'x:{x},y:{y} の東がへん {maze[y][x] >> 1 & 1}:{maze[y][x+1] >> 3 & 1}')
+            if y+1<N :
+                if (maze[y][x] >> 2 & 1) != (maze[y+1][x] >> 4 & 1 ) : 
+                    print(f'x:{x},y:{y} の南がへん {maze[y][x] >> 2 & 1}:{maze[y+1][x] >> 4 & 1}')
+
+def print_maze_status(maze_status):
+    for row in maze_status:
+        for status in row:
+            print(status, end=' ')
+        print()  # 改行
 
 def check_passability(maze, maze_check, x, y):
     N = len(maze)
@@ -251,13 +284,13 @@ if __name__ == "__main__":
     game_settings = {
         'N': N,
         'maze': [[15 for _ in range(N)] for _ in range(N)],
-        'cell_size': 20,
+        'cell_size': 40,
         'wire': True,
         'player_x': 0,
         'player_y': 0,
         'player_dir': 0,
         'wall_size': (800, 500),
-        'screen': pygame.display.set_mode((640, 480)),
+        'screen': pygame.display.set_mode((850, 850)),
         'wall_color': (160, 160, 160),
         'bg_color': (0, 0, 0),
         'door_color': (152, 81, 75),
