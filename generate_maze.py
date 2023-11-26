@@ -160,14 +160,41 @@ def find_valid_room_position(room_width, room_height, N, maze_status):  # 部屋
             if possible_doors:
                 maze[y][x] |= random.choice(possible_doors)
                 break
+def check_all_wall_door_consistency(maze):  #　迷路の壁とドアの整合性の確認
+    N = len(maze)
+    for y in range(N):
+        for x in range(N):
+            if x+1<N :
+                if (maze[y][x] >> 0 & 1) != (maze[y][x+1] >> 3 & 1 ) : 
+                    print(f'x:{x},y:{y} の東がへん {maze[y][x] >> 1 & 1}:{maze[y][x+1] >> 3 & 1}')
+            if y+1<N :
+                if (maze[y][x] >> 2 & 1) != (maze[y+1][x] >> 0 & 1 ) : 
+                    print(f'x:{x},y:{y} の南がへん {maze[y][x] >> 2 & 1}:{maze[y+1][x] >> 4 & 1}')
+def check_passability(maze, maze_check, x, y):  #通れない部屋がないか確認
+    N = len(maze)
+
+    if x < 0 or x >= N or y < 0 or y >= N or maze_check[y][x] == 1:
+        return
+    
+    maze_check[y][x] = 1  # 通行可能なセルとマーク
+
+    # 上下左右のセルを再帰的にチェック
+    if (maze[y][x] & 0b0001 == 0) or (maze[y][x] & 0b00010000 == 0b00010000):
+        check_passability(maze, maze_check, x, y - 1)  # 上
+    if (maze[y][x] & 0b0010 == 0) or (maze[y][x] & 0b00100000 == 0b00100000):
+        check_passability(maze, maze_check, x + 1, y)  # 右
+    if (maze[y][x] & 0b0100 == 0) or (maze[y][x] & 0b01000000 == 0b01000000):
+        check_passability(maze, maze_check, x, y + 1)  # 下
+    if (maze[y][x] & 0b1000 == 0) or (maze[y][x] & 0b10000000 == 0b10000000):
+        check_passability(maze, maze_check, x - 1, y)  # 左
 def generate_new_maze(game_settings):   # 新しい迷路を生成
     N = game_settings['N']
     game_settings['maze'] = [[15 for _ in range(N)] for _ in range(N)]
     maze_status = [[0 for _ in range(N)] for _ in range(N)]  # 迷路のセルのステータス
     
-    add_random_spaces(2, 3, 0, game_settings, maze_status)
-    add_random_rooms(3, 5, 10, game_settings, maze_status)
-
+    add_random_spaces(2, 2, 2, game_settings, maze_status)
+    add_random_rooms(2, 2, 0, game_settings, maze_status)
+    
     start_cell = find_uncreated_cell(N, maze_status)
     while start_cell:
         x, y = start_cell
@@ -184,7 +211,6 @@ def generate_new_maze(game_settings):   # 新しい迷路を生成
     # 通れない部屋がないか確認
     maze_check = [[0 for _ in range(N)] for _ in range(N)]
     check_passability(game_settings['maze'], maze_check, 0, 0)
-    #print(maze_check)
     # 通れない部屋があるか確認
     while any(cell == 0 for row in maze_check for cell in row):
         print("通れない部屋があります。")
@@ -213,45 +239,69 @@ def generate_new_maze(game_settings):   # 新しい迷路を生成
              
         maze_check = [[0 for _ in range(N)] for _ in range(N)]
         check_passability(game_settings['maze'], maze_check, 0, 0)
-        #print_maze_status(maze_status)
     #check_all_wall_door_consistency(game_settings['maze'])
-def check_all_wall_door_consistency(maze):  #　迷路の壁とドアの整合性の確認
-    N = len(maze)
-    for y in range(N):
-        for x in range(N):
-            if x+1<N :
-                if (maze[y][x] >> 0 & 1) != (maze[y][x+1] >> 3 & 1 ) : 
-                    print(f'x:{x},y:{y} の東がへん {maze[y][x] >> 1 & 1}:{maze[y][x+1] >> 3 & 1}')
-            if y+1<N :
-                if (maze[y][x] >> 2 & 1) != (maze[y+1][x] >> 0 & 1 ) : 
-                    print(f'x:{x},y:{y} の南がへん {maze[y][x] >> 2 & 1}:{maze[y+1][x] >> 4 & 1}')
-def check_passability(maze, maze_check, x, y):  #通れない部屋がないか確認
-    N = len(maze)
-
-    if x < 0 or x >= N or y < 0 or y >= N or maze_check[y][x] == 1:
-        return
+    #print(game_settings['maze'])
+    print(random.choice(find_staircase_locations_optimal(game_settings['maze'])))
     
-    maze_check[y][x] = 1  # 通行可能なセルとマーク
+def decode_maze_cell(cell_value):
+    """
+    Decodes the cell value of the maze to determine the presence of walls and doors.
+    
+    Args:
+    cell_value (int): The value of the maze cell.
 
-    # 上下左右のセルを再帰的にチェック
-    if (maze[y][x] & 0b0001 == 0) or (maze[y][x] & 0b00010000 == 0b00010000):
-        check_passability(maze, maze_check, x, y - 1)  # 上
-    if (maze[y][x] & 0b0010 == 0) or (maze[y][x] & 0b00100000 == 0b00100000):
-        check_passability(maze, maze_check, x + 1, y)  # 右
-    if (maze[y][x] & 0b0100 == 0) or (maze[y][x] & 0b01000000 == 0b01000000):
-        check_passability(maze, maze_check, x, y + 1)  # 下
-    if (maze[y][x] & 0b1000 == 0) or (maze[y][x] & 0b10000000 == 0b10000000):
-        check_passability(maze, maze_check, x - 1, y)  # 左
+    Returns:
+    tuple: A tuple containing two lists, the first list represents the walls (1 for wall, 0 for no wall)
+           in the order [north, east, south, west], and the second list represents the doors in the same order.
+    """
+    walls = [(cell_value >> i) & 1 for i in range(4)]
+    doors = [(cell_value >> (i + 4)) & 1 for i in range(4)]
+    return walls, doors
+def find_staircase_locations_optimal(maze):
+    """
+    Finds the optimal locations for staircase placement in the maze based on the presence of walls and doors.
+
+    Args:
+    maze (list): The maze data.
+
+    Returns:
+    list: A list of tuples, each tuple representing the (x, y) coordinates and category of an optimal staircase location.
+    """
+    maze_width = len(maze[0])
+    maze_height = len(maze)
+    staircase_locations = []
+
+    for y in range(maze_height):
+        for x in range(maze_width):
+            walls, doors = decode_maze_cell(maze[y][x])
+
+            # Criteria 1: Not next to a door
+            if not any(doors):
+                if walls.count(0) == 4:
+                    staircase_locations.append((x, y, "No walls"))
+                elif walls.count(1) == 3:
+                    staircase_locations.append((x, y, "3 walls"))
+                elif walls.count(1) ==2:
+                    staircase_locations.append((x, y, "2 walls"))
+                else:
+                    staircase_locations.append((x, y, "Other"))
+            else:
+                # If next to a door, classify as 'Other'
+                staircase_locations.append((x, y, "Other"))
+    print(staircase_locations)
+    return staircase_locations
+
 
 if __name__ == "__main__":  # モジュールテスト
     pygame.init()  # pygame を初期化する
 
     # フォントの初期化
     pygame.font.init()
-    N=20
+    N=10
     game_settings = {
         'N': N,
         'maze': [[0b1111 for _ in range(N)] for _ in range(N)],
+        'maze_floor':[[0 for _ in range(20)] for _ in range(20)],
         'cell_size': 40,
         'wire': True,
         'player_x': 0,
