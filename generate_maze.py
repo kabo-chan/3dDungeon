@@ -1,3 +1,4 @@
+#   迷宮作成ルーチン
 
 import random
 import pygame
@@ -21,7 +22,6 @@ def generate_maze(x, y, game_settings, maze_status):  # 迷路を生成する関
             remove_wall(y, x, direction, game_settings)
             maze_status[ny][nx] = 1
             generate_maze(nx, ny, game_settings,maze_status)
-
 def remove_wall(y, x, direction,game_settings):  #指定された壁を取り除く関数
     #print(f'remove_wall({x},{y} d={direction})')
     maze = game_settings['maze']
@@ -41,16 +41,14 @@ def remove_wall(y, x, direction,game_settings):  #指定された壁を取り除
     if direction == 3 :  # 西側の壁
         maze[y][x] &= ~8
         if x>0 : maze[y][x-1] &= ~2
-
-# 未作成のセルを探す関数
-def find_uncreated_cell(N, maze_status):
+def find_uncreated_cell(N, maze_status):    # 未作成のセルを探す関数
     #print('find_uncreated_cell')
     for y in range(N):
         for x in range(N):
             if maze_status[y][x] == 0:
                 return x, y
     return None  # 未作成のセルが見つからない場合は None を返す
-def build_wall(y,x,direction,game_settings):
+def build_wall(y,x,direction,game_settings):    #壁を作る
     maze = game_settings['maze']
     N = game_settings['N']
     if direction == 0:  #上
@@ -65,9 +63,7 @@ def build_wall(y,x,direction,game_settings):
     if direction == 3:  #左
         maze[y][x] |= 8
         if x>0 : maze[y][x - 1] |= 2
-
-
-def build_door(y,x,direction,game_settings):
+def build_door(y,x,direction,game_settings):    #ドアを作る
     print(f'build_door y={y} x={x}')
     maze = game_settings['maze']
     N = game_settings['N']
@@ -88,8 +84,7 @@ def build_door(y,x,direction,game_settings):
         maze[y][x] |= 128
         if x>0 : maze[y][x - 1] |= 32
         else: maze[y][N] |= 32
-
-def add_random_rooms(min_size, max_size, num_rooms, game_settings, maze_status):
+def add_random_rooms(min_size, max_size, num_rooms, game_settings, maze_status):    #指定されたサイズ、数の閉じた部屋を作る
     #print('add_random_rooms')
     maze = game_settings['maze']
     N = game_settings['N']
@@ -109,10 +104,7 @@ def add_random_rooms(min_size, max_size, num_rooms, game_settings, maze_status):
                     if i == (x + room_width - 1)    :build_wall(j,i,1,game_settings)    #右
                     if j == y                       :build_wall(j,i,0,game_settings)   #上 
                     if j == (y + room_height - 1)   :build_wall(j,i,2,game_settings) #下
-
-
-
-def add_random_spaces(min_size, max_size, num_rooms, game_settings, maze_status):
+def add_random_spaces(min_size, max_size, num_rooms, game_settings, maze_status):   #指定されたサイズ、数の空間を作る
     #print('add_random_space')
     maze = game_settings['maze']
     N = game_settings['N']
@@ -130,9 +122,7 @@ def add_random_spaces(min_size, max_size, num_rooms, game_settings, maze_status)
                     if i == (x + room_width-1)  : remove_wall(j,i,1,game_settings)   #右のマスの左側の壁も取り除く
                     if j == y                   : remove_wall(j,i,0,game_settings)
                     if j == (y + room_height-1) : remove_wall(j,i,2,game_settings)
-
-# 部屋の位置を決定する関数
-def find_valid_room_position(room_width, room_height, N, maze_status):
+def find_valid_room_position(room_width, room_height, N, maze_status):  # 部屋の位置を決定する関数
     #print('find_valid_room_position')
     for _ in range(100):  # 最大100回試行
         x = random.randint(0, N - room_width)
@@ -154,10 +144,7 @@ def find_valid_room_position(room_width, room_height, N, maze_status):
 
     return None, None  # 適切な位置が見つからない場合は None を返す
 
-def add_doors(num_doors, game_settings):
-    maze = game_settings['maze']
-    N = game_settings['N']
-    directions = [0b10000, 0b100000, 0b1000000, 0b10000000]  # 北、東、南、西のドアを示すビット
+
 
     for _ in range(num_doors):
         while True:
@@ -173,14 +160,13 @@ def add_doors(num_doors, game_settings):
             if possible_doors:
                 maze[y][x] |= random.choice(possible_doors)
                 break
-# 新しい迷路を生成
-def generate_new_maze(game_settings):
+def generate_new_maze(game_settings):   # 新しい迷路を生成
     N = game_settings['N']
     game_settings['maze'] = [[15 for _ in range(N)] for _ in range(N)]
     maze_status = [[0 for _ in range(N)] for _ in range(N)]  # 迷路のセルのステータス
     
-    add_random_spaces(2, 3, 10, game_settings, maze_status)
-    add_random_rooms(2, 3, 30, game_settings, maze_status)
+    add_random_spaces(2, 3, 0, game_settings, maze_status)
+    add_random_rooms(3, 5, 10, game_settings, maze_status)
 
     start_cell = find_uncreated_cell(N, maze_status)
     while start_cell:
@@ -208,21 +194,13 @@ def generate_new_maze(game_settings):
         for y in range(N):
             for x in range(N):
                 if maze_check[y][x] == 0:
-
-                    # 上
-                    if y > 0 and maze_check[y - 1][x] == 1:
+                    if y > 0 and maze_check[y - 1][x] == 1: # 上
                         adjacent_cells.append((y, x,0))
-
-                    # 右
-                    if x < N - 1 and maze_check[y][x + 1] == 1:
+                    if x < N - 1 and maze_check[y][x + 1] == 1:    # 右
                         adjacent_cells.append((y, x,1))
-
-                    # 下
-                    if y < N - 1 and maze_check[y + 1][x] == 1:
+                    if y < N - 1 and maze_check[y + 1][x] == 1:    # 下
                         adjacent_cells.append((y, x,2))
-
-                    # 左
-                    if x > 0 and maze_check[y][x - 1] == 1:
+                    if x > 0 and maze_check[y][x - 1] == 1:    # 左
                         adjacent_cells.append((y, x,3))
 
         if adjacent_cells:
@@ -236,27 +214,18 @@ def generate_new_maze(game_settings):
         maze_check = [[0 for _ in range(N)] for _ in range(N)]
         check_passability(game_settings['maze'], maze_check, 0, 0)
         #print_maze_status(maze_status)
-    check_all_wall_door_consistency(game_settings['maze'])
-
-
-def check_all_wall_door_consistency(maze):
+    #check_all_wall_door_consistency(game_settings['maze'])
+def check_all_wall_door_consistency(maze):  #　迷路の壁とドアの整合性の確認
     N = len(maze)
     for y in range(N):
         for x in range(N):
             if x+1<N :
-                if (maze[y][x] >> 1 & 1) != (maze[y][x+1] >> 3 & 1 ) : 
+                if (maze[y][x] >> 0 & 1) != (maze[y][x+1] >> 3 & 1 ) : 
                     print(f'x:{x},y:{y} の東がへん {maze[y][x] >> 1 & 1}:{maze[y][x+1] >> 3 & 1}')
             if y+1<N :
-                if (maze[y][x] >> 2 & 1) != (maze[y+1][x] >> 4 & 1 ) : 
+                if (maze[y][x] >> 2 & 1) != (maze[y+1][x] >> 0 & 1 ) : 
                     print(f'x:{x},y:{y} の南がへん {maze[y][x] >> 2 & 1}:{maze[y+1][x] >> 4 & 1}')
-
-def print_maze_status(maze_status):
-    for row in maze_status:
-        for status in row:
-            print(status, end=' ')
-        print()  # 改行
-
-def check_passability(maze, maze_check, x, y):
+def check_passability(maze, maze_check, x, y):  #通れない部屋がないか確認
     N = len(maze)
 
     if x < 0 or x >= N or y < 0 or y >= N or maze_check[y][x] == 1:
@@ -274,8 +243,7 @@ def check_passability(maze, maze_check, x, y):
     if (maze[y][x] & 0b1000 == 0) or (maze[y][x] & 0b10000000 == 0b10000000):
         check_passability(maze, maze_check, x - 1, y)  # 左
 
-# モジュールテスト
-if __name__ == "__main__":
+if __name__ == "__main__":  # モジュールテスト
     pygame.init()  # pygame を初期化する
 
     # フォントの初期化
@@ -283,7 +251,7 @@ if __name__ == "__main__":
     N=20
     game_settings = {
         'N': N,
-        'maze': [[15 for _ in range(N)] for _ in range(N)],
+        'maze': [[0b1111 for _ in range(N)] for _ in range(N)],
         'cell_size': 40,
         'wire': True,
         'player_x': 0,

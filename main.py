@@ -31,7 +31,8 @@ def handle_keys(game_settings): #キー操作
             elif isinstance(action, dict):
                 dx, dy = action[game_settings['player_dir']]
                 front_wall, _, _ = draw_3d.is_wall_present( game_settings['player_x'], game_settings['player_y'], game_settings)
-                if True:  # not front_wall: # デバッグとして壁を通り抜けられる
+                front_door, _, _ = draw_3d.is_door_present( game_settings['player_x'], game_settings['player_y'], game_settings)
+                if not front_wall or front_door : # デバッグとして壁を通り抜けられる
                     game_settings['player_x'] = (game_settings['player_x'] + dx) % game_settings['N']
                     game_settings['player_y'] = (game_settings['player_y'] + dy) % game_settings['N']
             game_settings['moved'] = True
@@ -40,6 +41,7 @@ def handle_keys(game_settings): #キー操作
 game_settings = {
     'N': 20,
     'maze': [[15 for _ in range(20)] for _ in range(20)],
+    'maze_floor':[[0 for _ in range(20)] for _ in range(20)],
     'cell_size': 20,
     'wire': True,
     'player_x': 0,
