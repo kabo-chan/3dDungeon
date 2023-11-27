@@ -80,6 +80,7 @@ def draw_maze_around_player(game_settings, full=False):
                 if floor & 4:   #下り階段
                     floor_obj = '⇓'
                     floor_obj_color = 200,0,0
+
                 if floor & 8:   #上り階段
                     floor_obj = '⇑'
                     floor_obj_color = 200,0,0

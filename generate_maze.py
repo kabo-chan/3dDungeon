@@ -65,7 +65,7 @@ def build_wall(y,x,direction,game_settings):    #壁を作る
         maze[y][x] |= 8
         if x>0 : maze[y][x - 1] |= 2
 def build_door(y,x,direction,game_settings):    #ドアを作る
-    print(f'build_door y={y} x={x}')
+    #print(f'build_door y={y} x={x}')
     maze = game_settings['maze']
     N = game_settings['N']
     #ドアがマップ端に作られる場合、マップの逆にもドアをつける
@@ -226,7 +226,9 @@ def generate_new_maze(game_settings):   # 新しい迷路を生成
     game_settings['maze'] = [[15 for _ in range(N)] for _ in range(N)]
     maze_status = [[0 for _ in range(N)] for _ in range(N)]  # 迷路のセルのステータス
     
-    random.seed()
+    seed=random.randint(0,65536)
+    print(f'seed-{seed}')
+    random.seed(seed)
     add_random_spaces(2, 2, 5, game_settings, maze_status)
     add_random_rooms(2, 3, 32, game_settings, maze_status)
     
@@ -248,7 +250,7 @@ def generate_new_maze(game_settings):   # 新しい迷路を生成
     check_passability(game_settings['maze'], maze_check, 0, 0)
     # 通れない部屋があるか確認
     while any(cell == 0 for row in maze_check for cell in row):
-        print("通れない部屋があります。")
+        #print("通れない部屋があります。")
                 
         # 通れない部屋の隣接するセルが１ならリストに追加
         adjacent_cells = []
