@@ -279,15 +279,16 @@ def generate_new_maze(game_settings):   # 新しい迷路を生成
     #check_all_wall_door_consistency(game_settings['maze'])
     #print(game_settings['maze'])
     staircase_locations=find_staircase_locations_optimal(game_settings['maze'])
-    locations_only = [(x, y, category) for x, y, category in staircase_locations if category in ['3 walls', 'No walls']] 
+    locations_only = [(x, y) for x, y, category in staircase_locations if category in ['3 walls', 'No walls']] 
     if not locations_only : 
-        locations_only = [(x, y, category) for x, y, category in staircase_locations if category == '2 walls']
+        locations_only = [(x, y) for x, y, category in staircase_locations if category == '2 walls']
 
-    x,y,_ = random.choice(locations_only)
+    (dx,dy),(ux,uy)= random.sample(locations_only,2)
     #print(staircase_locations)
     game_settings['maze_floor'] = deepcopy(maze_status)
-    game_settings['maze_floor'][y][x] += 4
-    print(x,y)
+    game_settings['maze_floor'][dy][dx] += 4
+    game_settings['maze_floor'][uy][ux] += 8
+    print(dx,dy,ux,uy)
     
 
 
