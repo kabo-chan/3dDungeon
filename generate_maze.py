@@ -229,8 +229,8 @@ def generate_new_maze(game_settings):   # 新しい迷路を生成
     seed=random.randint(0,65536)
     print(f'seed-{seed}')
     random.seed(seed)
-    add_random_spaces(2, 2, 5, game_settings, maze_status)
-    add_random_rooms(2, 3, 32, game_settings, maze_status)
+    add_random_spaces(2, 2, 15, game_settings, maze_status)
+    add_random_rooms(2, 3, 20, game_settings, maze_status)
     
     start_cell = find_uncreated_cell(N, maze_status)
     while start_cell:
