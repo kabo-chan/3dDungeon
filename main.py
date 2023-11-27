@@ -32,7 +32,7 @@ def handle_keys(game_settings): #キー操作
                 dx, dy = action[game_settings['player_dir']]
                 front_wall, _, _ = draw_3d.is_wall_present( game_settings['player_x'], game_settings['player_y'], game_settings)
                 front_door, _, _ = draw_3d.is_door_present( game_settings['player_x'], game_settings['player_y'], game_settings)
-                if not front_wall or front_door : # デバッグとして壁を通り抜けられる
+                if True:#not front_wall or front_door : # デバッグとして壁を通り抜けられる
                     game_settings['player_x'] = (game_settings['player_x'] + dx) % game_settings['N']
                     game_settings['player_y'] = (game_settings['player_y'] + dy) % game_settings['N']
             game_settings['moved'] = True
@@ -52,6 +52,8 @@ game_settings = {
     'wall_color': (160, 160, 160),
     'bg_color': (0, 0, 0),
     'door_color':(152,81,75),
+    'stair_color': (160, 160, 0),
+    'floor_color': (76, 40, 37),
     'num_walls': 5,
     'moved':True,
     'draw_minimap':True

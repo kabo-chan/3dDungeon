@@ -52,6 +52,32 @@ def draw_wall_sub(points, z, base_color, game_settings):
         pygame.draw.polygon(screen, color, points, width=1)
     else:
         pygame.draw.polygon(screen, color, points, width=0)
+def draw_stairs(x,z,game_settings,is_down=False,is_up=False):
+    points = []
+    if is_down:
+        _, hsize, xpos, ypos = calculate_wall_dimensions(x, z, game_settings)
+        points.append((xpos, ypos+hsize))
+        _, hsize, xpos, ypos = calculate_wall_dimensions(x, z-1, game_settings)
+        points.append((xpos, ypos+hsize))
+        _, hsize, xpos, ypos = calculate_wall_dimensions(x+1, z-1, game_settings)
+        points.append((xpos, ypos+hsize))
+        _, hsize, xpos, ypos = calculate_wall_dimensions(x+1, z, game_settings)
+        points.append((xpos, ypos+hsize))
+        stair_points = [(200, 200), (200, 400), (600, 400), (600, 200)]
+        points = transform_points_with_points_list(stair_points, points)
+    if is_up:
+        _, hsize, xpos, ypos = calculate_wall_dimensions(x, z-1, game_settings)
+        points.append((xpos, ypos))
+        _, hsize, xpos, ypos = calculate_wall_dimensions(x, z, game_settings)
+        points.append((xpos, ypos))
+        _, hsize, xpos, ypos = calculate_wall_dimensions(x+1, z, game_settings)
+        points.append((xpos, ypos))
+        _, hsize, xpos, ypos = calculate_wall_dimensions(x+1, z-1, game_settings)
+        points.append((xpos, ypos))
+        stair_points = [(200, 200), (200, 400), (600, 400), (600, 200)]
+        points = transform_points_with_points_list(stair_points, points)
+
+    draw_wall_sub(points, z, game_settings['stair_color'] if is_down or is_up else game_settings['floor_color'] , game_settings)
 
 def draw_wall(x, z, game_settings, is_door=False, is_left=False, is_right=False):
     points = []
@@ -70,10 +96,10 @@ def draw_wall(x, z, game_settings, is_door=False, is_left=False, is_right=False)
         points.append((xpos, ypos + hsize))
         points.append((xpos, ypos))
     else:
-        wsize, hsize, xpos, ypos = calculate_wall_dimensions(x, z, game_settings)
+        _, hsize, xpos, ypos = calculate_wall_dimensions(x, z, game_settings)
         points.append((xpos, ypos))
         points.append((xpos, ypos + hsize))
-        wsize, hsize, xpos, ypos = calculate_wall_dimensions(x + 1, z, game_settings)
+        _, hsize, xpos, ypos = calculate_wall_dimensions(x + 1, z, game_settings)
         points.append((xpos, ypos + hsize))
         points.append((xpos, ypos))
 
@@ -139,6 +165,20 @@ def is_door_present(x, y, game_settings):
     right_door = check_door(x, y, (player_dir + 1) % 4)
 
     return front_door, left_door, right_door
+def is_floor_present(x, y, game_settings):
+    maze_floor = game_settings['maze_floor']
+    player_dir = game_settings['player_dir']
+    N = game_settings['N']
+
+    # 迷路の範囲外を処理する関数
+    def wrap_around(value):
+        return (value + N) % N
+
+    # プレイヤーの方向に応じて前方、左側、右側の壁をチェック
+    is_down = game_settings['maze_floor'][ wrap_around(y)][ wrap_around(x)] & 4 == 4
+    is_up = game_settings['maze_floor'][ wrap_around(y)][ wrap_around(x)] & 8 == 8
+
+    return is_down,is_up
 def draw_player_view(game_settings):
     screen = game_settings['screen']
     num_walls = game_settings['num_walls']
@@ -147,8 +187,8 @@ def draw_player_view(game_settings):
     screen.fill((0, 0, 0))
     
     # 壁の描画
-    for i in range(num_walls, -1, -1):
-        for j in range(-i - 2, i + 2):
+    for i in range(num_walls, -1, -1):  #奥から描く
+        for j in range(-i - 2, i + 2):#正面壁
             x, y = get_maze_coordinates(i, j, game_settings)
             front_wall, left_wall, right_wall = is_wall_present(x, y, game_settings)
             front_door, left_door, right_door = is_door_present(x, y, game_settings)
@@ -156,7 +196,13 @@ def draw_player_view(game_settings):
             # 正面の壁またはドアの描画
             if front_wall: draw_wall(j, i, game_settings)
             if front_door: draw_wall(j, i, game_settings, is_door=True)
-        for j in range(-i - 2, i + 2):
+        for j in range(-i - 2, i + 2):#床,天井
+            #draw_stairs(j,i,game_settings)
+            x, y = get_maze_coordinates(i, j, game_settings)
+            is_down,is_up =is_floor_present(x, y, game_settings)
+            if is_down: draw_stairs(j,i,game_settings,is_down=True)
+            if is_up: draw_stairs(j,i,game_settings,is_up=True)
+        for j in range(-i - 2, i + 2):#左右の壁
             x, y = get_maze_coordinates(i, j, game_settings)
             front_wall, left_wall, right_wall = is_wall_present(x, y, game_settings)
             front_door, left_door, right_door = is_door_present(x, y, game_settings)
@@ -168,4 +214,5 @@ def draw_player_view(game_settings):
             if j <= 0:
                 if left_wall: draw_wall(j, i, game_settings, is_left=True)
                 if left_door: draw_wall(j, i, game_settings, is_door=True, is_left=True)
+
 
