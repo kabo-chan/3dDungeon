@@ -37,9 +37,16 @@ def draw_maze_around_player(game_settings, full=False):
         view = num_walls
 
     # 画面の中央座標を計算
-    screen_center_x = screen.get_width() // 2 - cell_size // 2
-    screen_center_y = screen.get_height() // 2 - cell_size // 2
-
+    screen_center_x = screen.get_width() // 2
+    screen_center_y = screen.get_height() // 2
+    #フォントオブジェクトを予め作成
+    font_size = cell_size // 4 * 3  # または適切なサイズ
+    fonts = {
+        '・': pygame.font.SysFont('meiryo', font_size),
+        'Ｄ': pygame.font.SysFont('meiryo', font_size),
+        'Ｕ': pygame.font.SysFont('meiryo', font_size)
+        # 他の文字に対するフォントもここに追加
+    }
     # プレイヤーを中心に周囲の迷路を描画する
     view = int(view / 2)
     for i in range(-view, view + 1):
@@ -76,7 +83,7 @@ def draw_maze_around_player(game_settings, full=False):
                     floor = game_settings['maze_floor'][y][x]
                     if floor & 1:   #通路
                         floor_obj = '・'
-                        floor_obj_color = 80,80,80
+                        floor_obj_color = 40,40,40
                     if floor & 2:   #room
                         floor_obj = '・'
                         floor_obj_color = 120,120,0
@@ -87,12 +94,12 @@ def draw_maze_around_player(game_settings, full=False):
                         floor_obj = 'Ｕ'
                         floor_obj_color = 200,0,0
                     
-                    if floor_obj != '' : 
-                        font = pygame.font.SysFont('meiryo', cell_size // 4 * 3)  # 日本語フォントと大きさ
+                    if floor_obj in fonts:
+                        font = fonts[floor_obj]
                         text_width, text_height = font.size(floor_obj)
                         text_surface = font.render(floor_obj, True, floor_obj_color)
                         screen.blit(text_surface, (draw_x + (cell_size - text_width) / 2, draw_y + (cell_size - text_height) / 2))
-                        pygame.display.flip() 
+    #pygame.display.flip() 
 
 
 
@@ -112,5 +119,5 @@ def draw_player_direction(game_settings ):  #画面中心にプレイヤーの�
     fontsize = 12
     font = pygame.font.SysFont('meiryo', fontsize)  # 日本語フォントと大きさ
     text_surface = font.render(arrow_text, True, (255, 0, 0))  # 赤色の矢印
-    text_rect = text_surface.get_rect(center=(screen.get_width() // 2 + 1, screen.get_height() // 2+1))
+    text_rect = text_surface.get_rect(center=(screen.get_width() // 2 + fontsize, screen.get_height() // 2+fontsize))
     screen.blit(text_surface, text_rect)

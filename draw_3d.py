@@ -182,9 +182,6 @@ def is_floor_present(x, y, game_settings):
 def draw_player_view(game_settings):
     screen = game_settings['screen']
     num_walls = game_settings['num_walls']
-
-    # 画面クリア
-    screen.fill((0, 0, 0))
     
     # 壁の描画
     for i in range(num_walls, -1, -1):  #奥から描く

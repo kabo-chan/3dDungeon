@@ -17,6 +17,9 @@ def handle_keys(game_settings): #キー操作
     if keys[pygame.K_e]:
         game_settings['draw_minimap'] = not game_settings['draw_minimap'] 
         game_settings['moved'] = True
+    if keys[pygame.K_m]:
+        game_settings['draw_fullmap'] = not game_settings['draw_fullmap']
+        game_settings['moved'] = True
     direction_mapping = {
         pygame.K_a: -1,  # 左に90度回転
         pygame.K_d: 1,   # 右に90度回転
@@ -59,7 +62,8 @@ game_settings = {
     'floor_color': (76, 40, 37),
     'num_walls': 5,
     'moved':True,
-    'draw_minimap':True
+    'draw_minimap':True,
+    'draw_fullmap':False
 }
 
 ##### 初期設定
@@ -84,11 +88,15 @@ while True:
     handle_keys(game_settings)  # キー操作の処理
 
     if game_settings['moved']:  #画面描画フラグ
-        draw_3d.draw_player_view(game_settings)  # プレイヤーの視点からの壁の描画
-        utl.draw_text(game_settings)  # 情報の表示
-        if game_settings['draw_minimap']:
-            utl.draw_maze_around_player(game_settings)  # プレイヤーの周囲の迷路を描画
-            utl.draw_player_direction(game_settings)  # プレイヤーの向きを表示
+        game_settings['screen'].fill((0, 0, 0))     # 画面クリア
+        if game_settings['draw_fullmap']:
+            utl.draw_maze_around_player(game_settings,full=True)
+        else:
+            draw_3d.draw_player_view(game_settings)  # プレイヤーの視点からの壁の描画
+            utl.draw_text(game_settings)  # 情報の表示
+            if game_settings['draw_minimap']:
+                utl.draw_maze_around_player(game_settings)  # プレイヤーの周囲の迷路を描画
+                utl.draw_player_direction(game_settings)  # プレイヤーの向きを表示
         
         pygame.display.flip()  # 画面の更新
         pygame.time.delay(200)  # スリープを挿入

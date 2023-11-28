@@ -302,6 +302,7 @@ if __name__ == "__main__":  # モジュールテスト
         'N': N,
         'maze': [[0b1111 for _ in range(N)] for _ in range(N)],
         'maze_floor':[[0 for _ in range(20)] for _ in range(20)],
+        'maze_explored':[[True for _ in range(20)] for _ in range(20)],
         'cell_size': 40,
         'wire': True,
         'player_x': 0,
