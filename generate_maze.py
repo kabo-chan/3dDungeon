@@ -229,8 +229,8 @@ def generate_new_maze(game_settings):   # 新しい迷路を生成
     seed=random.randint(0,65536)
     print(f'seed-{seed}')
     random.seed(seed)
-    add_random_spaces(2, 2, 15, game_settings, maze_status)
-    add_random_rooms(2, 3, 20, game_settings, maze_status)
+    add_random_spaces(2, 2, 3, game_settings, maze_status)
+    add_random_rooms(2, 3, 5, game_settings, maze_status)
     
     start_cell = find_uncreated_cell(N, maze_status)
     while start_cell:
@@ -284,7 +284,7 @@ def generate_new_maze(game_settings):   # 新しい迷路を生成
         locations_only = [(x, y) for x, y, category in staircase_locations if category == '2 walls']
 
     (dx,dy),(ux,uy)= random.sample(locations_only,2)
-    #print(staircase_locations)
+    print(locations_only)
     game_settings['maze_floor'] = deepcopy(maze_status)
     game_settings['maze_floor'][dy][dx] += 4
     game_settings['maze_floor'][uy][ux] += 8
@@ -297,7 +297,7 @@ if __name__ == "__main__":  # モジュールテスト
 
     # フォントの初期化
     pygame.font.init()
-    N=20
+    N=10
     game_settings = {
         'N': N,
         'maze': [[0b1111 for _ in range(N)] for _ in range(N)],
