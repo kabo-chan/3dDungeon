@@ -96,7 +96,7 @@ while True:
             utl.draw_text(game_settings)  # 情報の表示
             if game_settings['draw_minimap']:
                 utl.draw_maze_around_player(game_settings)  # プレイヤーの周囲の迷路を描画
-                utl.draw_player_direction(game_settings)  # プレイヤーの向きを表示
+                #utl.draw_player_direction(game_settings)  # プレイヤーの向きを表示
         
         pygame.display.flip()  # 画面の更新
         pygame.time.delay(200)  # スリープを挿入

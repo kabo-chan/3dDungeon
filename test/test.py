@@ -40,6 +40,26 @@ image_path = 'D:\\Download\\DALL·E 2023-11-22 21.32.09 - A seamless, repeatable
 image = pygame.image.load(image_path)
 image_rect = image.get_rect(center=(width // 2, height // 2))
 
+def open_message_window(screen,window_x, window_y, window_width,total_height ,animation_speed = 20):
+    # メッセージウィンドウを表示するアニメーション
+    window_height = 0
+    while window_height < total_height:
+        window_height += total_height//animation_speed
+        window_anim_y = window_y + (total_height - window_height) // 2
+        message_window_rect = pygame.Rect(window_x,window_y, window_width, window_height)
+        #message_window_rect.center =  (window_x,window_y)
+
+        # メッセージウィンドウの背景を描画
+        pygame.draw.rect(screen, BLACK, message_window_rect)
+        pygame.draw.rect(screen, WHITE, message_window_rect,width = 3)
+
+        pygame.display.flip()
+        pygame.time.wait(12)
+    #message_window_rect = pygame.Rect(window_x, window_y, window_width, total_height + padding * 2)
+    # メッセージウィンドウの背景を描画
+    pygame.draw.rect(screen, BLACK, message_window_rect)
+    pygame.draw.rect(screen, WHITE, message_window_rect,width = 5)
+
 def draw_message_window(screen,message,command):
     """メッセージウィンドウを描画する"""
     message_lines = message.split('\n')
@@ -63,22 +83,9 @@ def draw_message_window(screen,message,command):
     animation_speed = 20  # アニメーションの回数
     # 元の画面をバッファに保存
     buffer = screen.copy()
-    # メッセージウィンドウを表示するアニメーション
-    while window_height < total_height + padding * 2:
-        window_height += ((total_height + padding * 2)//animation_speed)
-        window_y = (height - window_height) // 2
-        message_window_rect = pygame.Rect(window_x, window_y, window_width, window_height)
+    
+    open_message_window(screen,window_x, window_y, max_width,total_height ,animation_speed = 20)
 
-        # メッセージウィンドウの背景を描画
-        pygame.draw.rect(screen, BLACK, message_window_rect)
-        pygame.draw.rect(screen, WHITE, message_window_rect,width = 3)
-
-        pygame.display.flip()
-        pygame.time.wait(12)
-    #message_window_rect = pygame.Rect(window_x, window_y, window_width, total_height + padding * 2)
-    # メッセージウィンドウの背景を描画
-    pygame.draw.rect(screen, BLACK, message_window_rect)
-    pygame.draw.rect(screen, WHITE, message_window_rect,width = 5)
     # メッセージを描画
     y_offset = window_y + padding
     for line in message_lines:
@@ -128,26 +135,6 @@ while True:
 その原因は、遥か古の地下深くに眠るとされる「影の迷宮」にあった。
 伝説によると、この迷宮は古代の魔法使いによって作られ、彼の死後、封印されたという。
 しかし、何者かによって封印が解かれ、迷宮から逃れた邪悪な力が世界を覆い始めたのだ。
-<改頁>
-あなたは、この危機を救うために選ばれた勇者の一人である。
-王国の最後の希望として、あなたには「影の迷宮」を探索し、
-世界を脅かす邪悪な力の源を断つ使命が与えられた。
-<改頁>
-冒険の始まりは、王国の古い城の地下にある秘密の入り口からだ。
-あなたは、選ばれし仲間たちと共に、暗く、謎に満ちた迷宮の入り口に立っている。
-迷宮は無限に広がり、数え切れない罠とモンスター、
-そして失われた宝物があなたを待ち受けている。
-<改頁>
-「影の迷宮」は、ただの迷宮ではない。それは生きており、侵入者を試すかのように
-常に変化し続ける。壁が動き、通路が変わり、部屋が消える。
-迷宮の中では、時間も空間も意味をなさない。
-<改頁>
-しかし、あなたには勇気がある。剣と魔法、そして仲間との絆がある。
-この冒険が、あなたを真の英雄へと導く道となるだろう。
-<改頁>
-「さあ、行こう。運命は我々の手の中にある。」
-あなたは仲間たちに呼びかけ、一歩を踏み出す。
-影の迷宮の深淵へと、その旅は始まった。
 <一時停止>
 """
         command = ["ok","no","cancel"]

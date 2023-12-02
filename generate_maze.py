@@ -229,8 +229,8 @@ def generate_new_maze(game_settings):   # 新しい迷路を生成
     seed=random.randint(0,65536)
     print(f'seed-{seed}')
     random.seed(seed)
-    add_random_spaces(2, 2, 3, game_settings, maze_status)
-    add_random_rooms(2, 3, 5, game_settings, maze_status)
+    add_random_spaces(2, 2, 10, game_settings, maze_status)
+    add_random_rooms(2, 3, 10, game_settings, maze_status)
     
     start_cell = find_uncreated_cell(N, maze_status)
     while start_cell:
@@ -305,8 +305,8 @@ if __name__ == "__main__":  # モジュールテスト
         'maze_explored':[[True for _ in range(20)] for _ in range(20)],
         'cell_size': 40,
         'wire': True,
-        'player_x': 0,
-        'player_y': 0,
+        'player_x': 5,
+        'player_y': 5,
         'player_dir': 0,
         'wall_size': (800, 500),
         'screen': pygame.display.set_mode((850, 850)),
@@ -317,6 +317,7 @@ if __name__ == "__main__":  # モジュールテスト
         'moved': True,
         'draw_minimap': True
     }
+    player_dir = game_settings['player_dir']
     # 迷路の生成
     random.seed()  # 乱数のシード値を設定
     generate_new_maze(game_settings)  # 新しい迷路生成を開始
@@ -329,12 +330,20 @@ if __name__ == "__main__":  # モジュールテスト
             elif event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_SPACE:  # スペースキーが押された場合
                     # game_settings を初期化して新しい迷路を生成
+                    #player_dir = (player_dir+1)%4
                     generate_new_maze(game_settings)
                     draw_flag= True
+                if event.key == pygame.K_a:
+                    player_dir = (player_dir+3)%4
+                    draw_flag= True
+                if event.key == pygame.K_d:
+                    player_dir = (player_dir+1)%4
+                    draw_flag= True
         if draw_flag:
+            print(f'player_dir={player_dir}')
             # 迷路を描画（full=True でプレイヤーの座標を中央に設定）
             game_settings['screen'].fill((0, 0, 0))
-            utl.draw_maze_around_player(game_settings, full=True)
+            utl.draw_maze_around_player(game_settings,full=True)
             # 画面を更新
             pygame.display.flip()
             draw_flag = False
